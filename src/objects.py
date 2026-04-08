@@ -1,5 +1,8 @@
 from collections import namedtuple
 import math
+
+from grid import Point3d
+
 CUBE_SIZE=3
 
 Edge=namedtuple('Edge',['start','end'])
@@ -14,14 +17,14 @@ class Cube:
     def generate_vertices(self):
         s=CUBE_SIZE
         self.vertices=[
-            (-s,-s,-s),
-            (s,-s,-s),
-            (s,s,-s),
-            (-s,s,-s),
-            (-s,-s,s),
-            (s,-s,s),
-            (s,s,s),
-            (-s,s,s),
+            Point3d(-s,-s,-s),
+            Point3d(s,-s,-s),
+            Point3d(s,s,-s),
+            Point3d(-s,s,-s),
+            Point3d(-s,-s,s),
+            Point3d(s,-s,s),
+            Point3d(s,s,s),
+            Point3d(-s,s,s),
         ]
 
     def generate_edges(self):

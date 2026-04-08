@@ -1,0 +1,7 @@
+# Canvas
+CANVAS_WIDTH = 64
+CANVAS_HEIGHT = 32
+
+# Camera
+CAMERA_Z_DEPTH = 5
+CAMERA_ZOOM = 1

@@ -1,69 +1,6 @@
-def print_grid(grid):
-    for i in range(33):
-        print('---',end='')
-    print()
-    for row in grid:
-        print('| ',end='')
-        for elt in row:
-            print(elt+'  ',end='')
-        print('|')
-    for i in range(33):
-        print('---',end='')
-    print()
-
-def draw_line(grid, x1, y1, x2, y2, char=None):
-    dx=abs(x2-x1)
-    dy=abs(y2-y1)
-
-    sx=1 if x1<x2 else -1
-    sy=1 if y1<y2 else -1
-
-    if char is None:
-        auto_char='.'
-    else:
-        auto_char=char
-
-    err=dx-dy
-
-    while True:
-        grid[y1][x1]=auto_char
-
-        if x1==x2 and y1==y2:
-            break
-
-        e2=2*err
-
-        if e2>-dy:
-            err-=dy
-            x1+=sx
-
-        if e2<dx:
-            err+=dx
-            y1+=sy
-
-
-grid = []
-for i in range(32):
-    row = []
-    for j in range(32):
-        row.append('*')
-    grid.append(row)
-
-draw_line(grid, 2, 2, 25, 20)
-draw_line(grid, 0, 0, 31, 0)
-draw_line(grid, 0, 0, 0, 31)
-draw_line(grid, 31, 0, 31, 31)
-draw_line(grid, 0, 31, 31, 31)
-print_grid(grid)
-
 import os
 
-# Constants (define these somewhere globally)
-CANVAS_WIDTH = 80
-CANVAS_HEIGHT = 40
-CAMERA_Z_DEPTH = 5
-CAMERA_ZOOM = 1
-
+from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_ZOOM
 
 class Point3d:
     def __init__(self, x, y, z):
@@ -75,9 +12,9 @@ class Point3d:
 class Renderer:
     def __init__(self):
         # Create 2D grid
-        self.grid = [[' ' for _ in range(CANVAS_WIDTH)]
+        self.grid = [['.' for _ in range(CANVAS_WIDTH)]
                      for _ in range(CANVAS_HEIGHT)]
-        self.clear_grid()
+        # self.clear_grid()
 
     def clear_grid(self):
         for y in range(CANVAS_HEIGHT):
@@ -85,14 +22,20 @@ class Renderer:
                 self.grid[y][x] = ' '
 
     def show_grid(self):
+        lines = []
+        width = 2 * CANVAS_WIDTH + 3
+        lines.append('-' * width)
+
         for row in self.grid:
-            print(" ".join(row))
+            lines.append('| ' + ' '.join(row) + ' |')
 
-    def clear_screen(self):
-        os.system("clear")   # use "cls" on Windows
-        self.clear_grid()
+        lines.append('-' * width)
 
-    def project_3d(self, point):
+        print("\033[H", end="")  # reset cursor
+        print('\n'.join(lines))
+
+    @staticmethod
+    def project_3d(point):
         screen_x = (point.x * CAMERA_Z_DEPTH * CAMERA_ZOOM /
                    (point.z + CAMERA_Z_DEPTH) + CANVAS_WIDTH / 2)
 
@@ -101,7 +44,8 @@ class Renderer:
 
         return Point3d(screen_x, screen_y, point.z * CAMERA_ZOOM)
 
-    def is_in_bounds(self, x, y):
+    @staticmethod
+    def is_in_bounds(x, y):
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
     def plot_point(self, p, symbol):

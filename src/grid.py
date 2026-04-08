@@ -1,25 +1,27 @@
-import os
+from collections import namedtuple
 
 from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_ZOOM
 
-class Point3d:
-    def __init__(self, x, y, z):
-        self.x = int(x)
-        self.y = int(y)
-        self.z = z
+point3d = namedtuple('Point3D', ['x', 'y', 'z', 'char'])
+
+# class Point3d:
+#     def __init__(self, x, y, z):
+#         self.x = int(x)
+#         self.y = int(y)
+#         self.z = z
 
 
 class Renderer:
     def __init__(self):
         # Create 2D grid
-        self.grid = [['.' for _ in range(CANVAS_WIDTH)]
-                     for _ in range(CANVAS_HEIGHT)]
+        self.grid = [[point3d(i, j, 0, ".") for i in range(CANVAS_WIDTH)]
+                     for j in range(CANVAS_HEIGHT)]
         # self.clear_grid()
 
     def clear_grid(self):
         for y in range(CANVAS_HEIGHT):
             for x in range(CANVAS_WIDTH):
-                self.grid[y][x] = ' '
+                self.grid[y][x] = point3d(x, y, 0, " ")
 
     def show_grid(self):
         lines = []
@@ -27,7 +29,7 @@ class Renderer:
         lines.append('-' * width)
 
         for row in self.grid:
-            lines.append('| ' + ' '.join(row) + ' |')
+            lines.append('| ' + ' '.join(map(lambda x: x.char, row)) + ' |')
 
         lines.append('-' * width)
 
@@ -42,18 +44,18 @@ class Renderer:
         screen_y = (point.y * CAMERA_Z_DEPTH * CAMERA_ZOOM /
                    (point.z + CAMERA_Z_DEPTH) + CANVAS_HEIGHT / 2)
 
-        return Point3d(screen_x, screen_y, point.z * CAMERA_ZOOM)
+        return point3d(screen_x, screen_y, point.z * CAMERA_ZOOM, point.char)
 
     @staticmethod
     def is_in_bounds(x, y):
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
-    def plot_point(self, p, symbol):
+    def plot_point(self, p):
         p = self.project_3d(p)
         x, y = int(p.x), int(p.y)
 
         if self.is_in_bounds(x, y):
-            self.grid[y][x] = symbol
+            self.grid[y][x] = p.char
 
     def draw_line(self, v1, v2):
         delta_x = v2.x - v1.x
@@ -65,7 +67,7 @@ class Renderer:
         if steps == 0:
             x, y = int(v1.x), int(v1.y)
             if self.is_in_bounds(x, y):
-                self.grid[y][x] = '#'
+                self.grid[y][x] = point3d(x, y, 0, "#")
             return
 
         # Line interpolation (DDA algorithm)
@@ -74,5 +76,5 @@ class Renderer:
             y = int(v1.y + (i * delta_y) / steps)
 
             if self.is_in_bounds(x, y):
-                self.grid[y][x] = '#'
+                self.grid[y][x] = point3d(x, y, 0, "#")
 

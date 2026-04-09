@@ -1,4 +1,7 @@
 import time
+
+from config import GRAVITY
+
 #
 # from grid import Renderer
 #
@@ -19,6 +22,10 @@ cube = Cube()
 while True:
     now = time.time()
     if now - last_update < 1 / 60:
+        if renderer.jump:
+            renderer.camera_y = 5 * (now - renderer.jump) - GRAVITY / 2 * (now - renderer.jump)**2
+        if renderer.camera_y < 0:
+            renderer.jump = 0
         continue
     last_update = now
 
@@ -26,6 +33,14 @@ while True:
         renderer.camera_z_depth -= 0.1
     if 's' in pressed:
         renderer.camera_z_depth += 0.1
+    if "a" in pressed:
+        renderer.camera_x -= 0.1
+    if "d" in pressed:
+        renderer.camera_x += 0.1
+
+    if "j" in pressed:
+        renderer.jump = now
+
 
     renderer.clear_grid()
 

@@ -17,6 +17,9 @@ class Renderer:
         # Create 2D grid
         self.grid = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), " ", dtype='<U1')
         self.camera_z_depth = CAMERA_Z_DEPTH
+        self.camera_x = 0
+        self.camera_y = 0
+        self.jump = 0
         # self.clear_grid()
 
     def clear_grid(self):
@@ -28,7 +31,7 @@ class Renderer:
         lines.append('-' * width)
 
         for row in self.grid:
-            lines.append('| ' + ' '.join(map(lambda x: x.char, row)) + ' |')
+            lines.append('| ' + ' '.join(row) + ' |')
 
         lines.append('-' * width)
 
@@ -51,10 +54,10 @@ class Renderer:
 
     def plot_point(self, p):
         p = self.project_3d(p)
-        x, y = int(p.x), int(p.y)
+        x, y = int(p.x - self.camera_x), int(p.y + self.camera_y)
 
         if self.is_in_bounds(x, y):
-            self.grid[y, x]= p
+            self.grid[y, x]= "#"
 
     def draw_line(self, v1, v2):
         delta_x = v2.x - v1.x
@@ -64,15 +67,13 @@ class Renderer:
 
         # Same point case
         if steps == 0:
-            x, y = int(v1.x), int(v1.y)
-            if self.is_in_bounds(x, y):
-                self.grid[y, x] = "#"
+            self.plot_point(v1)
             return
 
         # Line interpolation (DDA algorithm)
         for i in range(steps + 1):
-            x = int(v1.x + (i * delta_x) / steps)
-            y = int(v1.y + (i * delta_y) / steps)
+            x = int(v1.x + (i * delta_x) / steps - self.camera_x)
+            y = int(v1.y + (i * delta_y) / steps + self.camera_y)
 
             if self.is_in_bounds(x, y):
                 self.grid[y, x] = "#"

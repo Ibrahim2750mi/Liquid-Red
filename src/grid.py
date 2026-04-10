@@ -19,6 +19,8 @@ class Renderer:
         self.camera_z_depth = CAMERA_Z_DEPTH
         self.camera_x = 0
         self.camera_y = 0
+        self.camera_yaw = 0
+        self.camera_pitch = 0
         self.jump = 0
         # self.clear_grid()
 
@@ -38,6 +40,20 @@ class Renderer:
         print("\033[H", end="")  # reset cursor
         print('\n'.join(lines))
 
+    def yaw(self, p):
+        return Point3d(
+            p.x*np.cos(self.camera_yaw) - p.z * np.sin(self.camera_yaw),
+            p.y,
+            p.x*np.sin(self.camera_yaw) + p.z * np.cos(self.camera_yaw)
+        )
+
+    def pitch(self, p):
+        return Point3d(
+            p.x,
+            p.y*np.cos(self.camera_pitch) - p.z*np.sin(self.camera_pitch),
+            p.y*np.sin(self.camera_pitch) + p.z*np.cos(self.camera_pitch)
+        )
+
     def project_3d(self, point):
         base = max((point.z + self.camera_z_depth), 0.01)
         screen_x = (point.x * self.camera_z_depth * CAMERA_ZOOM /
@@ -53,11 +69,9 @@ class Renderer:
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
     def plot_point(self, p):
-        p = self.project_3d(p)
-        x, y = int(p.x - self.camera_x), int(p.y + self.camera_y)
+        p = self.project_3d(self.pitch(self.yaw(Point3d(p.x - self.camera_x, p.y - self.camera_y, p.z))))
 
-        if self.is_in_bounds(x, y):
-            self.grid[y, x]= "#"
+        return Point3d(p.x, p.y, p.z)
 
     def draw_line(self, v1, v2):
         delta_x = v2.x - v1.x
@@ -67,14 +81,14 @@ class Renderer:
 
         # Same point case
         if steps == 0:
-            self.plot_point(v1)
+            if self.is_in_bounds(v1.x, v1.y):
+                self.grid[int(v1.y), int(v1.x)] = "#"
             return
 
         # Line interpolation (DDA algorithm)
         for i in range(steps + 1):
-            x = int(v1.x + (i * delta_x) / steps - self.camera_x)
-            y = int(v1.y + (i * delta_y) / steps + self.camera_y)
+            x = int(v1.x + (i * delta_x) / steps)
+            y = int(v1.y + (i * delta_y) / steps)
 
             if self.is_in_bounds(x, y):
                 self.grid[y, x] = "#"
-

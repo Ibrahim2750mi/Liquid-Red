@@ -20,25 +20,26 @@ while True:
     last_update = now
 
     if renderer.jump:
-        renderer.camera_y = 5 * (now - renderer.jump) - GRAVITY / 2 * (now - renderer.jump) ** 2
-    if renderer.camera_y < 0:
+        renderer.camera_y = -(5 * (now - renderer.jump) - GRAVITY / 2 * (now - renderer.jump) ** 2)
+    if renderer.camera_y > 0:
         renderer.jump = 0
+        renderer.camera_y = 0
 
     speed = 0.1
 
     if 'w' in pressed:
         renderer.camera_x += speed * np.sin(renderer.camera_yaw)
-        renderer.camera_z_depth -= speed * np.cos(renderer.camera_yaw)
+        renderer.camera_z += speed * np.cos(renderer.camera_yaw)
 
     if 's' in pressed:
         renderer.camera_x -= speed * np.sin(renderer.camera_yaw)
-        renderer.camera_z_depth += speed * np.cos(renderer.camera_yaw)
+        renderer.camera_z -= speed * np.cos(renderer.camera_yaw)
     if 'a' in pressed:
         renderer.camera_x -= speed * np.cos(renderer.camera_yaw)
-        renderer.camera_z_depth -= speed * np.sin(renderer.camera_yaw)
+        renderer.camera_z -= speed * np.sin(renderer.camera_yaw)
     if 'd' in pressed:
         renderer.camera_x += speed * np.cos(renderer.camera_yaw)
-        renderer.camera_z_depth += speed * np.sin(renderer.camera_yaw)
+        renderer.camera_z += speed * np.sin(renderer.camera_yaw)
     if "," in pressed:
         renderer.camera_yaw += 0.002
     if "." in pressed:
@@ -50,15 +51,12 @@ while True:
 
     renderer.clear_grid()
 
+    edge_pairs = []
     for edge in cube.edges:
         x1, y1, z1 = cube.vertices[edge.start]
         x2, y2, z2 = cube.vertices[edge.end]
+        edge_pairs.append((Point3d(x1, y1, z1), Point3d(x2, y2, z2)))
 
-        p1 = renderer.plot_point(Point3d(x1, y1, z1))
-        p2 = renderer.plot_point(Point3d(x2, y2, z2))
-
-        if p1 and p2:
-            renderer.draw_line(p1, p2)
-
+    renderer.draw_edges_sorted(edge_pairs)
     renderer.show_grid()
 

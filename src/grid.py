@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_ZOOM
+from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM
 import numpy as np
 
 Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
@@ -17,6 +17,7 @@ class Renderer:
         # Create 2D grid
         self.grid = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), " ", dtype='<U1')
         self.camera_z_depth = CAMERA_Z_DEPTH
+        self.camera_z = CAMERA_Z_START
         self.camera_x = 0
         self.camera_y = 0
         self.camera_yaw = 0
@@ -69,7 +70,7 @@ class Renderer:
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
     def plot_point(self, p):
-        p = self.project_3d(self.pitch(self.yaw(Point3d(p.x - self.camera_x, p.y - self.camera_y, p.z))))
+        p = self.project_3d(self.pitch(self.yaw(Point3d(p.x - self.camera_x, p.y - self.camera_y, p.z - self.camera_z))))
 
         return Point3d(p.x, p.y, p.z)
 
@@ -92,3 +93,23 @@ class Renderer:
 
             if self.is_in_bounds(x, y):
                 self.grid[y, x] = "#"
+
+    def draw_edges_sorted(self, edge_pairs):
+        """
+        edge_pairs: list of (p1_world, p2_world) Point3d tuples.
+        Projects all edges, sorts by average Z (farthest first) and then draws them.
+        """
+        projected = []
+        for p1_world, p2_world in edge_pairs:
+            p1 = self.plot_point(p1_world)
+            p2 = self.plot_point(p2_world)
+            if p1 is None or p2 is None:
+                continue
+            avg_z = (p1.z + p2.z) / 2
+            projected.append((avg_z, p1, p2))
+
+        # Far edges first
+        projected.sort(key=lambda t: t[0], reverse=True)
+
+        for _, p1, p2 in projected:
+            self.draw_line(p1, p2)

@@ -9,7 +9,15 @@ Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
 #     def __init__(self, x, y, z):
 #         self.x = int(x)
 #         self.y = int(y)
-#         self.z = z
+#         self.z =
+
+def project(func):
+    def wrapper(self, *args, **kwargs):
+        arg_list = []
+        for arg in args:
+            arg_list.append(self.plot_point(arg))
+        return func(self, *arg_list, kwargs)
+    return wrapper
 
 
 class Renderer:
@@ -23,10 +31,13 @@ class Renderer:
         self.camera_yaw = 0
         self.camera_pitch = 0
         self.jump = 0
+
+        self.z_buffer = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), np.inf, dtype=float)
         # self.clear_grid()
 
     def clear_grid(self):
         self.grid[:] = ' '
+        self.z_buffer[:] = np.inf
 
     def show_grid(self):
         lines = []
@@ -69,47 +80,69 @@ class Renderer:
     def is_in_bounds(x, y):
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
+    @staticmethod
+    def edge(a, b, p):
+        return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
+
+    def is_visible(self, p):
+        if p.z > self.z_buffer[p.y, p.x]:
+            return False
+        self.z_buffer[p.y, p.x] = p.z
+        return True
+
     def plot_point(self, p):
         p = self.project_3d(self.pitch(self.yaw(Point3d(p.x - self.camera_x, p.y - self.camera_y, p.z - self.camera_z))))
 
         return Point3d(p.x, p.y, p.z)
 
+    @project
     def draw_line(self, v1, v2):
         delta_x = v2.x - v1.x
         delta_y = v2.y - v1.y
+        delta_z = v2.z - v1.z
 
         steps = int(max(abs(delta_x), abs(delta_y)))
 
         # Same point case
         if steps == 0:
-            if self.is_in_bounds(v1.x, v1.y):
-                self.grid[int(v1.y), int(v1.x)] = "#"
+            if self.is_in_bounds(v1.x, v1.y) and self.is_visible(v1):
+                    self.grid[int(v1.y), int(v1.x)] = "#"
             return
 
         # Line interpolation (DDA algorithm)
         for i in range(steps + 1):
             x = int(v1.x + (i * delta_x) / steps)
             y = int(v1.y + (i * delta_y) / steps)
-
-            if self.is_in_bounds(x, y):
+            z = int(v1.z + (i * delta_z) / steps)
+            if self.is_in_bounds(x, y) and self.is_visible(Point3d(x, y, z)):
                 self.grid[y, x] = "#"
 
-    def draw_edges_sorted(self, edge_pairs):
-        """
-        edge_pairs: list of (p1_world, p2_world) Point3d tuples.
-        Projects all edges, sorts by average Z (farthest first) and then draws them.
-        """
-        projected = []
-        for p1_world, p2_world in edge_pairs:
-            p1 = self.plot_point(p1_world)
-            p2 = self.plot_point(p2_world)
-            if p1 is None or p2 is None:
-                continue
-            avg_z = (p1.z + p2.z) / 2
-            projected.append((avg_z, p1, p2))
+    @project
+    def draw_triangle(self, v1, v2, v3, char="#"):
 
-        # Far edges first
-        projected.sort(key=lambda t: t[0], reverse=True)
+        min_x = int(max(0, np.floor(min(v1.x, v2.x, v3.x))))
+        max_x = int(min(CANVAS_WIDTH - 1, np.ceil(max(v1.x, v2.x, v3.x))))
+        min_y = int(max(0, np.floor(min(v1.y, v2.y, v3.y))))
+        max_y = int(min(CANVAS_HEIGHT - 1, np.ceil(max(v1.y, v2.y, v3.y))))
 
-        for _, p1, p2 in projected:
-            self.draw_line(p1, p2)
+        area = self.edge(v1, v2, v3)
+        if area == 0:
+            return
+
+        for y in range(min_y, max_y + 1):
+            for x in range(min_x, max_x + 1):
+
+                p = Point3d(x, y, 0)
+
+                w1 = self.edge(v2, v3, p) / area
+                w2 = self.edge(v3, v1, p) / area
+                w3 = self.edge(v1, v2, p) / area
+
+                # Barycentric condition that a point is inside a triangle
+                if w1 >= 0 and w2 >= 0 and w3 >= 0:
+
+                    # Depth interpolation
+                    z = w1 * v1.z + w2 * v2.z + w3 * v3.z
+
+                    if self.is_visible(Point3d(x, y, z)):
+                        self.grid[y, x] = char

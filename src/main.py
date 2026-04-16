@@ -51,12 +51,5 @@ while True:
 
     renderer.clear_grid()
 
-    edge_pairs = []
-    for edge in cube.edges:
-        x1, y1, z1 = cube.vertices[edge.start]
-        x2, y2, z2 = cube.vertices[edge.end]
-        edge_pairs.append((Point3d(x1, y1, z1), Point3d(x2, y2, z2)))
-
-    renderer.draw_edges_sorted(edge_pairs)
     renderer.show_grid()
 

@@ -1,6 +1,7 @@
 from collections import namedtuple
 
-from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM
+from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, LIGHT_DIRECTION_VECTOR
+from geometry import point_position_wrt_line
 import numpy as np
 
 Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
@@ -16,7 +17,7 @@ def project(func):
         arg_list = []
         for arg in args:
             arg_list.append(self.plot_point(arg))
-        return func(self, *arg_list, kwargs)
+        return func(self, *arg_list, **kwargs)
     return wrapper
 
 
@@ -80,10 +81,6 @@ class Renderer:
     def is_in_bounds(x, y):
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
-    @staticmethod
-    def edge(a, b, p):
-        return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
-
     def is_visible(self, p):
         if p.z > self.z_buffer[p.y, p.x]:
             return False
@@ -125,7 +122,7 @@ class Renderer:
         min_y = int(max(0, np.floor(min(v1.y, v2.y, v3.y))))
         max_y = int(min(CANVAS_HEIGHT - 1, np.ceil(max(v1.y, v2.y, v3.y))))
 
-        area = self.edge(v1, v2, v3)
+        area = point_position_wrt_line(v1, v2, v3)
         if area == 0:
             return
 
@@ -134,9 +131,9 @@ class Renderer:
 
                 p = Point3d(x, y, 0)
 
-                w1 = self.edge(v2, v3, p) / area
-                w2 = self.edge(v3, v1, p) / area
-                w3 = self.edge(v1, v2, p) / area
+                w1 = point_position_wrt_line(v2, v3, p) / area
+                w2 = point_position_wrt_line(v3, v1, p) / area
+                w3 = point_position_wrt_line(v1, v2, p) / area
 
                 # Barycentric condition that a point is inside a triangle
                 if w1 >= 0 and w2 >= 0 and w3 >= 0:

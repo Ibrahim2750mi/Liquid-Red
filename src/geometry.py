@@ -3,8 +3,8 @@ from functools import lru_cache
 
 import numpy as np
 
+Point3d = namedtuple("Point3D", ["x", "y", "z"])
 
-Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
 
 @lru_cache
 def point_position_wrt_line(a, b, p):
@@ -15,6 +15,7 @@ def point_position_wrt_line(a, b, p):
     :return: +ve if p is to the left and -ve if right.
     """
     return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
+
 
 @lru_cache
 def compute_surface_normal(v1, v2, v3):
@@ -31,6 +32,7 @@ def compute_surface_normal(v1, v2, v3):
         return np.array([0, 0, 1])
 
     return n / norm
+
 
 @lru_cache
 def get_lambert_char(intensity):

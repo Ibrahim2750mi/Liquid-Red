@@ -51,8 +51,8 @@ class Renderer:
     def is_in_bounds(x, y):
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
-    def is_visible(self, p):
-        if p.z > self.z_buffer[p.y, p.x] or p.z < self.camera.z:
+    def is_visible(self, p, char="+"):
+        if p.z > self.z_buffer[p.y, p.x] and char != "#":
             return False
         self.z_buffer[p.y, p.x] = p.z
         return True
@@ -65,7 +65,7 @@ class Renderer:
         return Point3d(p.x, p.y, p.z)
 
     @project
-    def draw_line(self, v1, v2):
+    def draw_line(self, v1, v2, char=None):
         delta_x = v2.x - v1.x
         delta_y = v2.y - v1.y
         delta_z = v2.z - v1.z
@@ -74,8 +74,8 @@ class Renderer:
 
         # Same point case
         if steps == 0:
-            if self.is_in_bounds(v1.x, v1.y) and self.is_visible(v1):
-                    self.grid[int(v1.y), int(v1.x)] = "#"
+            if self.is_in_bounds(v1.x, v1.y) and self.is_visible(Point3d(*map(int, v1)), char):
+                    self.grid[int(v1.y), int(v1.x)] = char or "#"
             return
 
         # Line interpolation (DDA algorithm)
@@ -83,8 +83,8 @@ class Renderer:
             x = int(v1.x + (i * delta_x) / steps)
             y = int(v1.y + (i * delta_y) / steps)
             z = int(v1.z + (i * delta_z) / steps)
-            if self.is_in_bounds(x, y) and self.is_visible(Point3d(x, y, z)):
-                self.grid[y, x] = "#"
+            if self.is_in_bounds(x, y) and self.is_visible(Point3d(x, y, z), char):
+                self.grid[y, x] = char or "#"
 
     @project
     def draw_triangle(self, v1, v2, v3, char="#"):
@@ -119,7 +119,7 @@ class Renderer:
     def draw_plane(self, v0, v1, v2, v3, char=None):
         normal = compute_surface_normal(v0, v1, v2)
         intensity = max(0, np.dot(normal, LIGHT_DIRECTION_VECTOR), np.dot(-normal, LIGHT_DIRECTION_VECTOR))
-        char = get_lambert_char(intensity) or char
+        char = char or get_lambert_char(intensity)
 
         self.draw_triangle(v0, v1, v2, char=char)
         self.draw_triangle(v0, v2, v3, char=char)

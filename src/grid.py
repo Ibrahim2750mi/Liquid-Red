@@ -1,16 +1,7 @@
-from collections import namedtuple
-
-from config import CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, LIGHT_DIRECTION_VECTOR
-from geometry import point_position_wrt_line
+from config import CANVAS_WIDTH, CANVAS_HEIGHT, LIGHT_DIRECTION_VECTOR
+from geometry import Point3d, compute_surface_normal, get_lambert_char, point_position_wrt_line
 import numpy as np
 
-Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
-
-# class Point3d:
-#     def __init__(self, x, y, z):
-#         self.x = int(x)
-#         self.y = int(y)
-#         self.z =
 
 def project(func):
     def wrapper(self, *args, **kwargs):
@@ -22,19 +13,12 @@ def project(func):
 
 
 class Renderer:
-    def __init__(self):
+    def __init__(self, camera):
         # Create 2D grid
         self.grid = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), " ", dtype='<U1')
-        self.camera_z_depth = CAMERA_Z_DEPTH
-        self.camera_z = CAMERA_Z_START
-        self.camera_x = 0
-        self.camera_y = 0
-        self.camera_yaw = 0
-        self.camera_pitch = 0
-        self.jump = 0
+        self.camera = camera
 
         self.z_buffer = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), np.inf, dtype=float)
-        # self.clear_grid()
 
     def clear_grid(self):
         self.grid[:] = ' '
@@ -53,29 +37,15 @@ class Renderer:
         print("\033[H", end="")  # reset cursor
         print('\n'.join(lines))
 
-    def yaw(self, p):
-        return Point3d(
-            p.x*np.cos(self.camera_yaw) - p.z * np.sin(self.camera_yaw),
-            p.y,
-            p.x*np.sin(self.camera_yaw) + p.z * np.cos(self.camera_yaw)
-        )
-
-    def pitch(self, p):
-        return Point3d(
-            p.x,
-            p.y*np.cos(self.camera_pitch) - p.z*np.sin(self.camera_pitch),
-            p.y*np.sin(self.camera_pitch) + p.z*np.cos(self.camera_pitch)
-        )
-
     def project_3d(self, point):
-        base = max((point.z + self.camera_z_depth), 0.01)
-        screen_x = (point.x * self.camera_z_depth * CAMERA_ZOOM /
+        base = max((point.z + self.camera.focal_length), 0.01)
+        screen_x = (point.x * self.camera.focal_length * self.camera.zoom /
                    base + CANVAS_WIDTH / 2)
 
-        screen_y = (point.y * self.camera_z_depth * CAMERA_ZOOM /
+        screen_y = (point.y * self.camera.focal_length * self.camera.zoom /
                    base + CANVAS_HEIGHT / 2)
 
-        return Point3d(screen_x, screen_y, point.z * CAMERA_ZOOM)
+        return Point3d(screen_x, screen_y, point.z * self.camera.zoom)
 
     @staticmethod
     def is_in_bounds(x, y):
@@ -88,7 +58,9 @@ class Renderer:
         return True
 
     def plot_point(self, p):
-        p = self.project_3d(self.pitch(self.yaw(Point3d(p.x - self.camera_x, p.y - self.camera_y, p.z - self.camera_z))))
+        p = self.project_3d(self.camera.pitch(self.camera.yaw(
+            Point3d(p.x - self.camera.x, p.y - self.camera.y, p.z - self.camera.z
+                    ))))
 
         return Point3d(p.x, p.y, p.z)
 
@@ -143,3 +115,12 @@ class Renderer:
 
                     if self.is_visible(Point3d(x, y, z)):
                         self.grid[y, x] = char
+
+    def draw_plane(self, v0, v1, v2, v3):
+        normal = compute_surface_normal(v0, v1, v2)
+        intensity = max(0, np.dot(normal, LIGHT_DIRECTION_VECTOR))
+        char = get_lambert_char(intensity)
+
+        self.draw_triangle(v0, v1, v2, char)
+        self.draw_triangle(v0, v2, v3, char)
+

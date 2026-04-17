@@ -1,6 +1,12 @@
+from collections import namedtuple
+from functools import lru_cache
+
 import numpy as np
 
 
+Point3d = namedtuple('Point3D', ['x', 'y', 'z'])
+
+@lru_cache
 def point_position_wrt_line(a, b, p):
     """
     :param a: point 1 on some line
@@ -10,6 +16,7 @@ def point_position_wrt_line(a, b, p):
     """
     return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
 
+@lru_cache
 def compute_surface_normal(v1, v2, v3):
     """
     Returns the direction vector of the surface formed by the plane v1, v2, v3.
@@ -25,10 +32,11 @@ def compute_surface_normal(v1, v2, v3):
 
     return n / norm
 
+@lru_cache
 def get_lambert_char(intensity):
     """
     Returns the character that corresponds to intensity.
     """
     shades = " .:-=+*#%@"
-    idx = int(intensity * (len(shades) - 1))
-    return shades[idx]
+    i = int(intensity * (len(shades) - 1))
+    return shades[i]

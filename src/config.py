@@ -12,3 +12,8 @@ CAMERA_Z_START = -10
 # Physical constants
 GRAVITY = 5
 LIGHT_DIRECTION_VECTOR = np.array([0, 0, -1])
+
+# Chunk system
+CHUNK_DEPTH = 10
+CORRIDOR_W = 6
+CORRIDOR_H = 5

@@ -1,14 +1,20 @@
 import time
 
+from camera import Camera
 from config import GRAVITY
-from grid import Renderer, Point3d
+from grid import Renderer
 from keyboard import pressed
-from objects import Cube
+from objects import Chunk, chunk_generator
 import numpy as np
 
+camera = Camera()
+renderer = Renderer(camera)
 
-renderer = Renderer()
-cube = Cube()
+from collections import deque
+import itertools
+
+gen = chunk_generator()
+active_chunks = deque(itertools.islice(gen, 5))  # seed with first 5
 
 last_update = 0
 speed = 0.1
@@ -19,35 +25,7 @@ while True:
         continue
     last_update = now
 
-    if renderer.jump:
-        renderer.camera_y = -(5 * (now - renderer.jump) - GRAVITY / 2 * (now - renderer.jump) ** 2)
-    if renderer.camera_y > 0:
-        renderer.jump = 0
-        renderer.camera_y = 0
-
-    speed = 0.1
-
-    if 'w' in pressed:
-        renderer.camera_x += speed * np.sin(renderer.camera_yaw)
-        renderer.camera_z += speed * np.cos(renderer.camera_yaw)
-
-    if 's' in pressed:
-        renderer.camera_x -= speed * np.sin(renderer.camera_yaw)
-        renderer.camera_z -= speed * np.cos(renderer.camera_yaw)
-    if 'a' in pressed:
-        renderer.camera_x -= speed * np.cos(renderer.camera_yaw)
-        renderer.camera_z -= speed * np.sin(renderer.camera_yaw)
-    if 'd' in pressed:
-        renderer.camera_x += speed * np.cos(renderer.camera_yaw)
-        renderer.camera_z += speed * np.sin(renderer.camera_yaw)
-    if "," in pressed:
-        renderer.camera_yaw += 0.002
-    if "." in pressed:
-        renderer.camera_yaw -= 0.002
-
-    if "j" in pressed and renderer.jump == 0:
-        renderer.jump = now
-
+    camera.update(pressed, now)
 
     renderer.clear_grid()
 

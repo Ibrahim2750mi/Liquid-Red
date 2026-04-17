@@ -7,7 +7,7 @@ CANVAS_HEIGHT = 32
 # Camera
 CAMERA_Z_DEPTH = 5
 CAMERA_ZOOM = 1
-CAMERA_Z_START = -10
+CAMERA_Z_START = -1
 
 # Physical constants
 GRAVITY = 5

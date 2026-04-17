@@ -37,6 +37,6 @@ def get_lambert_char(intensity):
     """
     Returns the character that corresponds to intensity.
     """
-    shades = " .:-=+*#%@"
+    shades = ".:-=+*#%@"
     i = int(intensity * (len(shades) - 1))
     return shades[i]

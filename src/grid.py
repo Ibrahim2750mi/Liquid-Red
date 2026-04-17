@@ -52,7 +52,7 @@ class Renderer:
         return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
 
     def is_visible(self, p):
-        if p.z > self.z_buffer[p.y, p.x]:
+        if p.z > self.z_buffer[p.y, p.x] or p.z < self.camera.z:
             return False
         self.z_buffer[p.y, p.x] = p.z
         return True
@@ -116,11 +116,29 @@ class Renderer:
                     if self.is_visible(Point3d(x, y, z)):
                         self.grid[y, x] = char
 
-    def draw_plane(self, v0, v1, v2, v3):
+    def draw_plane(self, v0, v1, v2, v3, char=None):
         normal = compute_surface_normal(v0, v1, v2)
-        intensity = max(0, np.dot(normal, LIGHT_DIRECTION_VECTOR))
-        char = get_lambert_char(intensity)
+        intensity = max(0, np.dot(normal, LIGHT_DIRECTION_VECTOR), np.dot(-normal, LIGHT_DIRECTION_VECTOR))
+        char = get_lambert_char(intensity) or char
 
-        self.draw_triangle(v0, v1, v2, char)
-        self.draw_triangle(v0, v2, v3, char)
+        self.draw_triangle(v0, v1, v2, char=char)
+        self.draw_triangle(v0, v2, v3, char=char)
+
+    def draw_plane_xy(self, x0, x1, y0, y1, z, char=None):
+        self.draw_plane(
+            Point3d(x0, y0, z), Point3d(x1, y0, z),
+            Point3d(x1, y1, z), Point3d(x0, y1, z), char
+        )
+
+    def draw_plane_xz(self, x0, x1, z0, z1, y, char=None):
+        self.draw_plane(
+            Point3d(x0, y, z0), Point3d(x1, y, z0),
+            Point3d(x1, y, z1), Point3d(x0, y, z1), char
+        )
+
+    def draw_plane_yz(self, y0, y1, z0, z1, x, char=None):
+        self.draw_plane(
+            Point3d(x, y0, z0), Point3d(x, y1, z0),
+            Point3d(x, y1, z1), Point3d(x, y0, z1), char
+        )
 

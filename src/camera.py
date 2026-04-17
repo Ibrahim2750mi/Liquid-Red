@@ -10,22 +10,22 @@ class Camera:
         self.z = z
         self.x = x
         self.y = y
-        self.yaw = 0
-        self.pitch = 0
+        self.yaw_angle = 0
+        self.pitch_angle = 0
         self.jump = 0
 
     def yaw(self, p):
         return Point3d(
-            p.x*np.cos(self.yaw) - p.z * np.sin(self.yaw),
+            p.x*np.cos(self.yaw_angle) - p.z * np.sin(self.yaw_angle),
             p.y,
-            p.x*np.sin(self.yaw) + p.z * np.cos(self.yaw)
+            p.x*np.sin(self.yaw_angle) + p.z * np.cos(self.yaw_angle)
         )
 
     def pitch(self, p):
         return Point3d(
             p.x,
-            p.y*np.cos(self.pitch) - p.z*np.sin(self.pitch),
-            p.y*np.sin(self.pitch) + p.z*np.cos(self.pitch)
+            p.y*np.cos(self.pitch_angle) - p.z*np.sin(self.pitch_angle),
+            p.y*np.sin(self.pitch_angle) + p.z*np.cos(self.pitch_angle)
         )
 
     def update(self, pressed, now):
@@ -38,22 +38,22 @@ class Camera:
         speed = 0.1
 
         if 'w' in pressed:
-            self.x += speed * np.sin(self.yaw)
-            self.z += speed * np.cos(self.yaw)
+            self.x += speed * np.sin(self.yaw_angle)
+            self.z += speed * np.cos(self.yaw_angle)
 
         if 's' in pressed:
-            self.x -= speed * np.sin(self.yaw)
-            self.z -= speed * np.cos(self.yaw)
+            self.x -= speed * np.sin(self.yaw_angle)
+            self.z -= speed * np.cos(self.yaw_angle)
         if 'a' in pressed:
-            self.x -= speed * np.cos(self.yaw)
-            self.z -= speed * np.sin(self.yaw)
+            self.x -= speed * np.cos(self.yaw_angle)
+            self.z -= speed * np.sin(self.yaw_angle)
         if 'd' in pressed:
-            self.x += speed * np.cos(self.yaw)
-            self.z += speed * np.sin(self.yaw)
+            self.x += speed * np.cos(self.yaw_angle)
+            self.z += speed * np.sin(self.yaw_angle)
         if "," in pressed:
-            self.yaw += 0.002
+            self.yaw_angle += 0.002
         if "." in pressed:
-            self.yaw -= 0.002
+            self.yaw_angle -= 0.002
 
         if "j" in pressed and self.jump == 0:
             self.jump = now

@@ -1,2 +1,3 @@
 # Liquid-Red
-DAC_104 Sem Project
+
+A python 3D rasterizer engine, using only TUI.

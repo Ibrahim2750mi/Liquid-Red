@@ -1,6 +1,5 @@
 import numpy as np
 
-from config import CANVAS_HEIGHT, CANVAS_WIDTH, LIGHT_DIRECTION_VECTOR
 from geometry import Point3d, compute_surface_normal, get_lambert_char, point_position_wrt_line
 
 
@@ -25,10 +24,10 @@ class Renderer:
         infront.
 
     """
-    def __init__(self, camera):
+    def __init__(self, camera, light_direction_vector):
         self.grid = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), " ", dtype="<U1")
         self.camera = camera
-
+        self.light_direction_vector = light_direction_vector
         self.z_buffer = np.full((CANVAS_HEIGHT, CANVAS_WIDTH), np.inf, dtype=float)
 
     def clear_grid(self):
@@ -153,7 +152,7 @@ class Renderer:
         Draws a plane using two triangles (v0, v1, v2) and (v0, v2, v3) and implements lighting using lambert shading.
         """
         normal = compute_surface_normal(v0, v1, v2)
-        intensity = max(0, np.dot(normal, LIGHT_DIRECTION_VECTOR), np.dot(-normal, LIGHT_DIRECTION_VECTOR))
+        intensity = max(0, np.dot(normal, self.light_direction_vector), np.dot(-normal, self.light_direction_vector))
         char = char or get_lambert_char(intensity)
 
         self.draw_triangle(v0, v1, v2, char=char)

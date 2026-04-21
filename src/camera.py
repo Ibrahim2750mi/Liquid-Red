@@ -1,6 +1,5 @@
 import numpy as np
 
-from config import CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, GRAVITY
 from geometry import Point3d
 
 
@@ -13,7 +12,7 @@ class Camera:
         :argument jump: jump flag, when the camera jumps.
     """
 
-    def __init__(self, x=0, y=0, z=CAMERA_Z_START, focal_length=CAMERA_Z_DEPTH, zoom=CAMERA_ZOOM):
+    def __init__(self, x=0, y=0, z=-1, focal_length=5, zoom=1):
         self.focal_length = focal_length
         self.zoom = zoom
         self.z = z

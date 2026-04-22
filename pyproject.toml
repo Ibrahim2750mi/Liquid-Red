@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "your-package-name"
+name = "LiquidRed"
 version = "0.1.0"
-description = "Short description of your package"
+description = "3D TUI-based rasterization engine"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [

@@ -1,5 +1,5 @@
-from camera import Camera
-import geometry
-from grid import Renderer
-import events
-import objects
+from .camera import Camera
+from . import geometry
+from .grid import Renderer
+from . import events
+from .objects import Cube, Edge, Object

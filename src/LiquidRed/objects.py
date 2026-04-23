@@ -31,6 +31,21 @@ class Object:
         self.edges = edges
 
 
+    def check_collision(self, camera):
+        """
+        Checks if collision between camera and object
+
+        Parameters
+        ----------
+        camera : Camera
+
+        Returns
+        -------
+        boolean
+        """
+        pass
+
+
 class Cube(Object):
     """
     Cube primitive defined by vertices, edges, and faces.
@@ -102,3 +117,24 @@ class Cube(Object):
         ]
 
         super().__init__(self.vertices, self.edges)
+
+        self.min_x, self.max_x = cx - s, cx + s
+        self.min_y, self.max_y = cy - s, cy + s
+        self.min_z, self.max_z = cz - s, cz + s
+
+    def check_collision(self, camera):
+        """
+        Check if the camera intersects the cube (AABB test).
+
+        Parameters
+        ----------
+        camera : Camera
+
+        Returns
+        -------
+        bool
+            True if the camera is inside the cube bounds.
+        """
+        return (self.min_x - 0.5 < camera.x < self.max_x + 0.5 and
+                self.min_y - 0.5 < camera.y < self.max_y + 0.5 and
+                self.min_z - 0.5 < camera.z - camera.focal_length < self.max_z + 0.5)

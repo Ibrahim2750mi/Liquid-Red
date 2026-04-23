@@ -105,29 +105,33 @@ class Renderer:
 
         return Point3d(screen_x, screen_y, point.z * self.camera.zoom)
 
-    def is_in_bounds(self, x, y):
+    def is_in_bounds(self, xi, yi):
         """
         Check if coordinates are within the canvas.
 
         Parameters
         ----------
-        x : int
-        y : int
+        xi : ndarray
+        yi : ndarray
 
         Returns
         -------
         bool
         """
-        return 0 <= x < self.canvas_width and 0 <= y < self.canvas_height
+        return (xi >= 0) & (xi < self.canvas_width) & (yi >= 0) & (yi < self.canvas_height)
 
-    def is_visible(self, p, char="+"):
+    def is_visible(self, xi, yi, zi, char="+"):
         """
         Perform z-buffer depth test.
 
         Parameters
         ----------
-        p : Point3d
-            Point with depth.
+        xi : ndarray
+            x_i of points.
+        yi : ndarray
+            y_i of points.
+        zi : ndarray
+            z_i of points.
         char : str, optional
             Character used for rendering. ``'#'`` bypasses z-buffer.
 
@@ -136,11 +140,10 @@ class Renderer:
         bool
             True if the point is visible.
         """
-        if p.z > self.z_buffer[p.y, p.x] and char != "#":
-            return False
+        visible = (zi < self.z_buffer[yi, xi]) | (char == "#")
+        self.z_buffer[yi[visible], xi[visible]] = zi[visible]
 
-        self.z_buffer[p.y, p.x] = p.z
-        return True
+        return visible
 
     def plot_point(self, p):
         """
@@ -187,19 +190,20 @@ class Renderer:
         delta_z = v2.z - v1.z
 
         steps = int(max(abs(delta_x), abs(delta_y)))
-
         if steps == 0:
-            if self.is_in_bounds(v1.x, v1.y) and self.is_visible(Point3d(*map(int, v1)), char):
+            if self.is_in_bounds(int(v1.x), int(v1.y)):
                 self.grid[int(v1.y), int(v1.x)] = char or "#"
             return
 
-        for i in range(steps + 1):
-            x = int(v1.x + (i * delta_x) / steps)
-            y = int(v1.y + (i * delta_y) / steps)
-            z = int(v1.z + (i * delta_z) / steps)
+        t = np.arange(steps + 1) / steps
+        xi = (v1.x + t * delta_x).astype(int)
+        yi = (v1.y + t * delta_y).astype(int)
+        zi = v1.z + t * delta_z
 
-            if self.is_in_bounds(x, y) and self.is_visible(Point3d(x, y, z), char):
-                self.grid[y, x] = char or "#"
+        in_bounds = self.is_in_bounds(xi, yi)
+        xi, yi, zi = xi[in_bounds], yi[in_bounds], zi[in_bounds]
+        visible = self.is_visible(xi, yi, zi)
+        self.grid[yi[visible], xi[visible]] = char or "#"
 
     @project
     def draw_triangle(self, v1, v2, v3, char="#"):
@@ -218,23 +222,35 @@ class Renderer:
         min_y = int(max(0, np.floor(min(v1.y, v2.y, v3.y))))
         max_y = int(min(self.canvas_height - 1, np.ceil(max(v1.y, v2.y, v3.y))))
 
-        area = point_position_wrt_line(v1, v2, v3)
+        if min_x >= max_x or min_y >= max_y:
+            return
+
+        # build pixel coordinate grids, make vector for numpy speedup
+        xs = np.arange(min_x, max_x + 1)
+        ys = np.arange(min_y, max_y + 1)
+        gx, gy = np.meshgrid(xs, ys)
+
+        # vectorized barycentric, all points at once
+        area = point_position_wrt_line(v1, v2, v3.x, v3.y)
         if area == 0:
             return
 
-        for y in range(min_y, max_y + 1):
-            for x in range(min_x, max_x + 1):
-                p = Point3d(x, y, 0)
+        w1 = point_position_wrt_line(v2, v3, gx, gy) / area
+        w2 = point_position_wrt_line(v3, v1, gx, gy) / area
+        w3 = point_position_wrt_line(v1, v2, gx, gy) / area
 
-                w1 = point_position_wrt_line(v2, v3, p) / area
-                w2 = point_position_wrt_line(v3, v1, p) / area
-                w3 = point_position_wrt_line(v1, v2, p) / area
+        # mask of pixels inside triangle, barrycentric condition of point lying inside triangle
+        inside = (w1 >= 0) & (w2 >= 0) & (w3 >= 0)
 
-                if w1 >= 0 and w2 >= 0 and w3 >= 0:
-                    z = w1 * v1.z + w2 * v2.z + w3 * v3.z
+        # depth interpolation across all pixels at once
+        z = w1 * v1.z + w2 * v2.z + w3 * v3.z
 
-                    if self.is_visible(Point3d(x, y, z)):
-                        self.grid[y, x] = char
+        abs_gy = gy[inside]
+        abs_gx = gx[inside]
+        abs_z = z[inside]
+        visible = self.is_visible(abs_gx, abs_gy, abs_z, char)
+
+        self.grid[abs_gy[visible], abs_gx[visible]] = char
 
     def draw_plane(self, v0, v1, v2, v3, char=None):
         """

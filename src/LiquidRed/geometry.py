@@ -7,9 +7,9 @@ Point3d = namedtuple("Point3D", ["x", "y", "z"])
 
 
 @lru_cache
-def point_position_wrt_line(a, b, p):
+def point_position_wrt_line(a, b, x, y):
     """
-    Compute the signed area (orientation test) of point `p`
+    Compute the signed area (orientation test) of point `(x,y)`
     relative to the directed line from `a` to `b`.
 
     This is equivalent to the 2D cross product and is commonly
@@ -21,23 +21,25 @@ def point_position_wrt_line(a, b, p):
         First point defining the line.
     b : Point3d
         Second point defining the line.
-    p : Point3d
-        Point to test.
+    x : ndarray
+        x of the Point to test.
+    y : ndarray
+        y of the Point to test.
 
     Returns
     -------
-    float
+    ndarray
         Signed value indicating position:
 
-        - Positive → `p` is to the left of the line (a → b)
-        - Negative → `p` is to the right
-        - Zero → `p` lies on the line
+        - Positive → `(x,y)` is to the left of the line (a -> b)
+        - Negative → `(x,y)` is to the right
+        - Zero → `(x,y)` lies on the line
 
     Notes
     -----
     Only the x and y components are used.
     """
-    return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
+    return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x)
 
 
 @lru_cache
@@ -105,3 +107,33 @@ def get_lambert_char(intensity):
     shades = ".:-=+*#%@"
     i = int(intensity * (len(shades) - 1))
     return shades[i]
+
+
+@lru_cache
+def check_coplanar(v1, v2, v3, p):
+    """
+    Check if four points are coplanar using the scalar triple product.
+
+    Parameters
+    ----------
+    v1, v2, v3 : Point3d
+        Points defining a plane.
+    p : Point3d
+        Point to test.
+
+    Returns
+    -------
+    bool
+        True if coplanar (within tolerance).
+    """
+    p1 = np.array([v1.x, v1.y, v1.z], dtype=float)
+    p2 = np.array([v2.x, v2.y, v2.z], dtype=float)
+    p3 = np.array([v3.x, v3.y, v3.z], dtype=float)
+    p4 = np.array([p.x, p.y, p.z], dtype=float)
+
+    a = p2 - p1
+    b = p3 - p1
+    c = p4 - p1
+
+    volume = np.dot(a, np.cross(b, c))
+    return abs(volume) < 0.1

@@ -63,7 +63,7 @@ Each object contains vertices, edges and collision detection atleast.
 
 ## Motivation and Background
 
-Modern 3D graphics are all GPU dependent, using high amounts of parallel processing that can rasterize millions of triangles
+Modern 3D graphics are all GPU dependent, using high amounts of parallel processing that can rasterize millions of triangles.
 Libraries like OpenGL, DirectX abstract this hardware API and make it easy to render 3D scenes without understanding the 
 underlying mathematics. Hence, the motivation was purely educational to learn the 3D rendering pipeline from scratch using
 only pure Python and NumPy. The terminal as a display medium is an intentional constraint, a terminal is fundamentally 2D
@@ -122,6 +122,7 @@ Further the library can itself be used to create more ridiculous games!
 | Classes                        | Renderer, Camera, Object, Cube, Chunk                                                                                                                                           |
 | NumPy Vectorization            | draw_line, draw_triangle, show_grid, clear_grid in grid.py                                                                                                                      |
 | numpy.linalg.norm              | compute_surface_normal in geometry.py                                                                                                                                           |
+| np.random                      | In chunk class for generating random obstacles                                                                                                                                  |
 | np.dot                         | check_coplanar in geometry.py                                                                                                                                                   |
 | np.cross                       | check_coplanar, compute_surface_normal in geometry.py                                                                                                                           |
 | decorators                     | @project in draw_line and draw_triangle, projects world coordinates to camera space (3D-> 2D) accepts any number of points and passes all of them through projection in grid.py |
@@ -135,3 +136,17 @@ Further the library can itself be used to create more ridiculous games!
 | itertools.chain.from_iterable  | main.py face/edge flattening                                                                                                                                                    |
 | class inheritance / base class | objects.py: Object                                                                                                                                                              |
 
+### Regarding usage of scipy/matplotlib/pandas
+
+Although SciPy, Matplotlib, and Pandas are part of the course syllabus, they had not been covered when this project was developed. The core development and ideation were completed around 17th April (even though the deadline was later extended to 24th April). So, we limited the implementation to concepts that had already been taught by that point.
+
+The implementation focuses on direct application of the covered material, including:
++ NumPy (vector operations, linear algebra)
++ Python standard libraries (collections, functools, itertools)
++ Object-oriented programming (classes, inheritance, decorators)
+
+All major components of the engine, such as projection, rasterization, shading, collision detection, and procedural generation, were implemented from scratch using these concepts.
+
+If this had been done later in the course, we would likely have used tools like Matplotlib (for example, for grid handling or visualization). However, at that stage, the goal was to work within what we had learned and build everything from first principles.
+
+This aligns with the evaluation criteria, as it is based on material covered up to the earlier project deadline (17th April). Specifically, we used topics such as collections, functools, itertools, decorators, classes (including static methods and inheritance), and NumPy operations (np.linalg, np.random, np.dot, np.cross), along with data structures like deques, sets, and namedtuple, and utilities such as cache, count, islice, and chain.from_iterable.

@@ -2,8 +2,8 @@
 
 A 3D game engine in python using only TUI. The project includes a game with 3D engine and the 3D engine itself.
 
-The game is an infinite runner, with infinite procedural generation the objective of the player is to run as far as they can
-without colliding with objects. It implements a corridor in which the player runs indefinitely until it collides with an obstacles<br>
+The game is an infinite runner, with infinite procedural generation, the objective of the player is to run as far as they can
+without colliding with objects. It implements a corridor in which the player runs indefinitely until it collides with an obstacle.<br>
 ps: you can jump too!
 
 The 3D game engine, came out perfect, so we decided to have it published as a python library. <br>
@@ -49,7 +49,7 @@ Covers helper function, requiring geometry, such as position of a point wrt to a
 and check if points are coplanar.
 
 ### grid.py
-This is the main backbone of our game engine and game itself. `Renderer` class handles all the drawing to the terminal functions. such
+This is the main backbone of our game engine and  the game itself. `Renderer` class handles all the drawing to the terminal functions. such
 as draw_line(for edges/wire frame), draw_plane(for surfaces) and the perspective projection math (`project3d`)
 
 
@@ -64,12 +64,12 @@ Each object contains vertices, edges and collision detection atleast.
 ## Motivation and Background
 
 Modern 3D graphics are all GPU dependent, using high amounts of parallel processing that can rasterize millions of triangles
-Libraries like OpenGL, DirectX abstract this hardware API and make it easy to render 3D scences without understanding the 
-underlying mathematics. Hence the motivation was purely educational to learn the 3D rendering pipeline from scratch using
+Libraries like OpenGL, DirectX abstract this hardware API and make it easy to render 3D scenes without understanding the 
+underlying mathematics. Hence, the motivation was purely educational to learn the 3D rendering pipeline from scratch using
 only pure Python and NumPy. The terminal as a display medium is an intentional constraint, a terminal is fundamentally 2D
 with no colors, no subpixels (only integral pixels) and because we wanted to build everything from scratch. We implement every
-step of 3D pipeline explicitly -> transforming world-coordinates to camera space (using rotation matrices), Projecting 3D onta a 2D plane using perspective division
-(which is just simple mathematics using properties similar triangles!!), resolving depth conflicts with z-buffer and coomputing
+step of 3D pipeline explicitly -> transforming world-coordinates to camera space (using rotation matrices), Projecting 3D onto a 2D plane using perspective division
+(which is just simple mathematics using properties similar triangles!!), resolving depth conflicts with z-buffer and computing
 lighting using lambert shading (dot product of vectors).
 
 The project also serves as a demonstration that a real time 3D-engine with a game loop, physics, procedural generation of
@@ -79,14 +79,14 @@ chunks, collision detection, lambert shading can be built using standard Python 
 ## Relevance and Complexity
 
 The problem addressed is fundamentally relevant to computer graphics and game development. Every modern rendering engine
-is built on the same mathematical pipeline as implemented here: event manangement, FPS management, coordinates transformation
-perspective projection, rasterization and depth testing. Understanding these principals are pre-requisites for debugging visual
+is built on the same mathematical pipeline as implemented here: event management, FPS management, coordinates transformation
+perspective projection, rasterization and depth testing. Understanding these principles are pre-requisites for debugging visual
 systems or extending graphics system. Most programmers who use 3D game engine never implement these themselves. This 
 project demonstrates 3D pipeline isn't magic, its linear algebra, geometric properties and coordinate geometry.
 
 The implementation is non-trivial, it requires rigorous mathematical understanding of linear algebra, matrices and coordinate systems.
 + rotation matrices
-+ perpective projection using similar triangles and focal length
++ perspective projection using similar triangles and focal length
 + vector cross products for lambert shading
 + DDA line rasterization to connect two integral points! We don't have subpixels so when we connect two points we implement a
 line using only integral coordinates

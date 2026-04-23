@@ -49,7 +49,7 @@ while game:
             renderer.draw_line(chunk.vertices[i], chunk.vertices[j], char="#")
     all_faces = chain.from_iterable(obs.faces for chunk in active_chunks for obs in chunk.obstacles)
     for v0, v1, v2, v3 in all_faces:
-        renderer.draw_plane(v0, v1, v2, v3, "+")
+        renderer.draw_plane(v0, v1, v2, v3)
 
 
     # collision check

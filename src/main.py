@@ -60,6 +60,7 @@ while game:
     t4 = time.perf_counter()
     print(
     f"camera:{(t1 - t0) * 1000:.1f}ms  clear:{(t2 - t1) * 1000:.1f}ms  draw:{(t3 - t2) * 1000:.1f}ms  show:{(t4 - t3) * 1000:.1f}ms")
+    print(f"\t\t\t\t\t\t\tSCORE:{int(camera.z)}")
 
 
 print(f"You Collided! GAME OVER\nScore: {camera.z}")

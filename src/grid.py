@@ -62,18 +62,18 @@ class Renderer:
         return Point3d(screen_x, screen_y, point.z)
 
     @staticmethod
-    def is_in_bounds(xs, ys):
+    def is_in_bounds(xi, yi):
         """
         Checks whether the point array is inside the canvas boundaries.
         """
-        return (xs >= 0) & (xs < CANVAS_WIDTH) & (ys >= 0) & (ys < CANVAS_HEIGHT)
+        return (xi >= 0) & (xi < CANVAS_WIDTH) & (yi >= 0) & (yi < CANVAS_HEIGHT)
 
-    def is_visible(self, xs, ys, zs, char="+"):
+    def is_visible(self, xi, yi, zi, char="+"):
         """
         Checks the z-buffer, to see if its in the most front. # (mesh-char) bypasses z-buffer.
         """
-        visible = (zs < self.z_buffer[ys, xs]) | (char == "#")
-        self.z_buffer[ys[visible], xs[visible]] = zs[visible]
+        visible = (zi < self.z_buffer[yi, xi]) | (char == "#")
+        self.z_buffer[yi[visible], xi[visible]] = zi[visible]
 
         return visible
 
@@ -100,15 +100,14 @@ class Renderer:
             return
 
         t = np.arange(steps + 1) / steps
-        xs = (v1.x + t * delta_x).astype(int)
-        ys = (v1.y + t * delta_y).astype(int)
-        zs = v1.z + t * delta_z
+        xi = (v1.x + t * delta_x).astype(int)
+        yi = (v1.y + t * delta_y).astype(int)
+        zi = v1.z + t * delta_z
 
-        in_bounds = self.is_in_bounds(xs, ys)
-        xs, ys, zs = xs[in_bounds], ys[in_bounds], zs[in_bounds]
-
-        visible = self.is_visible(xs, ys, zs)
-        self.grid[ys[visible], xs[visible]] = char or "#"
+        in_bounds = self.is_in_bounds(xi, yi)
+        xi, yi, zi = xi[in_bounds], yi[in_bounds], zi[in_bounds]
+        visible = self.is_visible(xi, yi, zi)
+        self.grid[yi[visible], xi[visible]] = char or "#"
 
     @project
     def draw_triangle(self, v1, v2, v3, char="#"):

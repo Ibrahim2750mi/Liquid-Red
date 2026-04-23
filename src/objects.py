@@ -15,6 +15,8 @@ class Object:
         self.vertices = vertices
         self.edges = edges
 
+    def check_collision(self, p):
+        pass
 
 class Cube(Object):
     """
@@ -55,7 +57,16 @@ class Cube(Object):
             Edge(3, 7),
         ]
 
+        self.min_x, self.max_x = cx - s, cx + s
+        self.min_y, self.max_y = cy - s, cy + s
+        self.min_z, self.max_z = cz - s, cz + s
+
         super().__init__(self.vertices, self.edges)
+
+    def check_collision(self, cam):
+        return (self.min_x - 0.5 < cam.x < self.max_x + 0.5 and
+                self.min_y - 0.5 < cam.y < self.max_y + 0.5 and
+                self.min_z - 0.5 < cam.z - cam.focal_length < self.max_z + 0.5)
 
 
 class Chunk(Object):
@@ -63,16 +74,16 @@ class Chunk(Object):
     Chunk object for infinite generation.
     """
     def __init__(self, index):
-        self.z_start = index * (CHUNK_DEPTH + 3)
+        self.z_start = index * CHUNK_DEPTH
         self.z_end = self.z_start + CHUNK_DEPTH
         self.obstacles = []
         obstacle_count = np.random.randint(0, 4)
 
         for _ in range(obstacle_count):
             cx = np.random.randint(-CORRIDOR_W / 2, CORRIDOR_W / 2)
-            cy = np.random.randint(-CORRIDOR_H / 2, CORRIDOR_H / 2)
+            cy = 0
             cz = np.random.randint(self.z_start, self.z_end)
-            self.obstacles.append(Cube(1.5, cx=cx, cy=cy, cz=cz))
+            self.obstacles.append(Cube(1, cx=cx, cy=cy, cz=cz))
 
         self.vertices = [
             Point3d(-CORRIDOR_W / 2, -CORRIDOR_H / 2, self.z_start),  # 0
@@ -83,6 +94,15 @@ class Chunk(Object):
             Point3d(CORRIDOR_W / 2, -CORRIDOR_H / 2, self.z_end),  # 5
             Point3d(CORRIDOR_W / 2, CORRIDOR_H / 2, self.z_end),  # 6
             Point3d(-CORRIDOR_W / 2, CORRIDOR_H / 2, self.z_end),  # 7
+        ]
+
+        self.faces = [
+            (self.vertices[0], self.vertices[1], self.vertices[2], self.vertices[3]),
+            (self.vertices[4], self.vertices[5], self.vertices[6], self.vertices[7]),
+            (self.vertices[0], self.vertices[1], self.vertices[5], self.vertices[4]),
+            (self.vertices[2], self.vertices[3], self.vertices[7], self.vertices[6]),
+            (self.vertices[0], self.vertices[3], self.vertices[7], self.vertices[4]),
+            (self.vertices[1], self.vertices[2], self.vertices[6], self.vertices[5]),
         ]
 
         # 12 edges

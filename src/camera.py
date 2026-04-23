@@ -1,7 +1,6 @@
 import numpy as np
 
-from config import CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, GRAVITY
-from objects import Object
+from config import CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, CORRIDOR_H, CORRIDOR_W, GRAVITY
 from geometry import Point3d
 
 
@@ -14,7 +13,7 @@ class Camera:
         :argument jump: jump flag, when the camera jumps.
     """
 
-    def __init__(self, x=0, y=0, z=CAMERA_Z_START, focal_length=CAMERA_Z_DEPTH, zoom=CAMERA_ZOOM):
+    def __init__(self, x=0, y=0, z=CAMERA_Z_START, focal_length=CAMERA_Z_DEPTH, zoom=CAMERA_ZOOM, speed=0.000001):
         self.focal_length = focal_length
         self.zoom = zoom
         self.z = z
@@ -23,6 +22,7 @@ class Camera:
         self.yaw_angle = 0
         self.pitch_angle = 0
         self.jump = 0
+        self.speed = speed
 
     def yaw(self, p):
         """
@@ -54,7 +54,7 @@ class Camera:
             self.jump = 0
             self.y = 0
 
-        speed = 0.1
+        speed = min(0.1 + self.speed*self.z*self.z, 0.5)
 
         if "w" in pressed:
             self.x += speed * np.sin(self.yaw_angle)
@@ -76,3 +76,8 @@ class Camera:
 
         if "j" in pressed and self.jump == 0:
             self.jump = now
+
+        self.x = np.clip(self.x, -CORRIDOR_W/2, CORRIDOR_W/2)
+        self.y = np.clip(self.y, -CORRIDOR_H/2, CORRIDOR_H/2)
+
+

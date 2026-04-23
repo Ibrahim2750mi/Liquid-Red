@@ -42,3 +42,20 @@ def get_lambert_char(intensity):
     shades = ".:-=+*#%@"
     i = int(intensity * (len(shades) - 1))
     return shades[i]
+
+
+@lru_cache
+def check_coplanar(v1, v2, v3, p):
+    p1 = np.array([v1.x, v1.y, v1.z], dtype=float)
+    p2 = np.array([v2.x, v2.y, v2.z], dtype=float)
+    p3 = np.array([v3.x, v3.y, v3.z], dtype=float)
+    p4 = np.array([p.x, p.y, p.z], dtype=float)
+
+    a = p2 - p1
+    b = p3 - p1
+    c = p4 - p1
+
+    # scalar triple product
+    volume = np.dot(a, np.cross(b, c))
+    return abs(volume) < 0.1
+

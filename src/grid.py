@@ -42,44 +42,40 @@ class Renderer:
         """
         Renders the grid.
         """
-        lines = []
-        width = 2 * CANVAS_WIDTH + 3
-        lines.append("-" * width)
-
+        lines = ["-" * (2 * CANVAS_WIDTH + 3)]
         for row in self.grid:
-            lines.append("| " + " ".join(row) + " |")
-
-        lines.append("-" * width)
-
-        print("\033[H", end="")  # reset cursor
-        print("\n".join(lines))
+            lines.append("| " + " ".join(row.tolist()) + " |")  # .tolist() is faster
+        lines.append("-" * (2 * CANVAS_WIDTH + 3))
+        print("\033[H", end="")
+        print("\n".join(lines), flush=False)
 
     def project_3d(self, point):
         """
         Converts 3D point coordinates to 2D coordinates using perspective projection.
         """
+        # self.camera.focal_length = self.camera.z
         base = max((point.z + self.camera.focal_length), 0.01)
         screen_x = point.x * self.camera.focal_length * self.camera.zoom / base + CANVAS_WIDTH / 2
 
         screen_y = point.y * self.camera.focal_length * self.camera.zoom / base + CANVAS_HEIGHT / 2
 
-        return Point3d(screen_x, screen_y, point.z * self.camera.zoom)
+        return Point3d(screen_x, screen_y, point.z)
 
     @staticmethod
-    def is_in_bounds(x, y):
+    def is_in_bounds(xs, ys):
         """
-        Checks whether the point is inside the canvas boundaries.
+        Checks whether the point array is inside the canvas boundaries.
         """
-        return 0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT
+        return (xs >= 0) & (xs < CANVAS_WIDTH) & (ys >= 0) & (ys < CANVAS_HEIGHT)
 
-    def is_visible(self, p, char="+"):
+    def is_visible(self, xs, ys, zs, char="+"):
         """
         Checks the z-buffer, to see if its in the most front. # (mesh-char) bypasses z-buffer.
         """
-        if p.z > self.z_buffer[p.y, p.x] and char != "#":
-            return False
-        self.z_buffer[p.y, p.x] = p.z
-        return True
+        visible = (zs < self.z_buffer[ys, xs]) | (char == "#")
+        self.z_buffer[ys[visible], xs[visible]] = zs[visible]
+
+        return visible
 
     def plot_point(self, p):
         """
@@ -93,60 +89,63 @@ class Renderer:
 
     @project
     def draw_line(self, v1, v2, char=None):
-        """
-        Uses DDA line algorithm to join two points. Using only integral coordinates intermediates.
-        """
         delta_x = v2.x - v1.x
         delta_y = v2.y - v1.y
         delta_z = v2.z - v1.z
 
         steps = int(max(abs(delta_x), abs(delta_y)))
-
-        # Same point case
         if steps == 0:
-            if self.is_in_bounds(v1.x, v1.y) and self.is_visible(Point3d(*map(int, v1)), char):
+            if self.is_in_bounds(int(v1.x), int(v1.y)):
                 self.grid[int(v1.y), int(v1.x)] = char or "#"
             return
 
-        # Line interpolation (DDA algorithm)
-        for i in range(steps + 1):
-            x = int(v1.x + (i * delta_x) / steps)
-            y = int(v1.y + (i * delta_y) / steps)
-            z = int(v1.z + (i * delta_z) / steps)
-            if self.is_in_bounds(x, y) and self.is_visible(Point3d(x, y, z), char):
-                self.grid[y, x] = char or "#"
+        t = np.arange(steps + 1) / steps
+        xs = (v1.x + t * delta_x).astype(int)
+        ys = (v1.y + t * delta_y).astype(int)
+        zs = v1.z + t * delta_z
+
+        in_bounds = self.is_in_bounds(xs, ys)
+        xs, ys, zs = xs[in_bounds], ys[in_bounds], zs[in_bounds]
+
+        visible = self.is_visible(xs, ys, zs)
+        self.grid[ys[visible], xs[visible]] = char or "#"
 
     @project
     def draw_triangle(self, v1, v2, v3, char="#"):
-        """
-        Rasterize a filled triangle using barycentric coordinates.
-        It determines if a point lies inside a triangle by evaluating its barrycentric weights.
-        """
-
         min_x = int(max(0, np.floor(min(v1.x, v2.x, v3.x))))
         max_x = int(min(CANVAS_WIDTH - 1, np.ceil(max(v1.x, v2.x, v3.x))))
         min_y = int(max(0, np.floor(min(v1.y, v2.y, v3.y))))
         max_y = int(min(CANVAS_HEIGHT - 1, np.ceil(max(v1.y, v2.y, v3.y))))
 
-        area = point_position_wrt_line(v1, v2, v3)
+        if min_x >= max_x or min_y >= max_y:
+            return
+
+        # build pixel coordinate grids, make vector for numpy speedup
+        xs = np.arange(min_x, max_x + 1)
+        ys = np.arange(min_y, max_y + 1)
+        gx, gy = np.meshgrid(xs, ys)
+
+        # vectorized barycentric, all points at once
+        area = point_position_wrt_line(v1, v2, v3.x, v3.y)
         if area == 0:
             return
 
-        for y in range(min_y, max_y + 1):
-            for x in range(min_x, max_x + 1):
-                p = Point3d(x, y, 0)
+        w1 = point_position_wrt_line(v2, v3, gx, gy) / area
+        w2 = point_position_wrt_line(v3, v1, gx, gy) / area
+        w3 = point_position_wrt_line(v1, v2, gx, gy) / area
 
-                w1 = point_position_wrt_line(v2, v3, p) / area
-                w2 = point_position_wrt_line(v3, v1, p) / area
-                w3 = point_position_wrt_line(v1, v2, p) / area
+        # mask of pixels inside triangle, barrycentric condition of point lying inside triangle
+        inside = (w1 >= 0) & (w2 >= 0) & (w3 >= 0)
 
-                # Barycentric condition that a point is inside a triangle
-                if w1 >= 0 and w2 >= 0 and w3 >= 0:
-                    # Depth interpolation
-                    z = w1 * v1.z + w2 * v2.z + w3 * v3.z
+        # depth interpolation across all pixels at once
+        z = w1 * v1.z + w2 * v2.z + w3 * v3.z
 
-                    if self.is_visible(Point3d(x, y, z)):
-                        self.grid[y, x] = char
+        abs_gy = gy[inside]
+        abs_gx = gx[inside]
+        abs_z = z[inside]
+        visible = self.is_visible(abs_gx, abs_gy, abs_z, char)
+
+        self.grid[abs_gy[visible], abs_gx[visible]] = char
 
     def draw_plane(self, v0, v1, v2, v3, char=None):
         """

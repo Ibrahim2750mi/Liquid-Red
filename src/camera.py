@@ -1,6 +1,7 @@
 import numpy as np
 
 from config import CAMERA_Z_DEPTH, CAMERA_Z_START, CAMERA_ZOOM, GRAVITY
+from objects import Object
 from geometry import Point3d
 
 

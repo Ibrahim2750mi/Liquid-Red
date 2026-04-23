@@ -6,15 +6,15 @@ import numpy as np
 Point3d = namedtuple("Point3D", ["x", "y", "z"])
 
 
-@lru_cache
-def point_position_wrt_line(a, b, p):
+def point_position_wrt_line(a, b, x, y):
     """
-    :param a: point 1 on some line
-    :param b: point 2 on the same line
-    :param p: point
-    :return: +ve if p is to the left and -ve if right.
+    :param a: array of point 1 on some line
+    :param b: array of point 2 on the same line
+    :param x: array of point x / the point x
+    :param y: arrary of point y / the point y
+    :return: +ve if p_i is to the left and -ve if right.
     """
-    return (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x)
+    return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x)
 
 
 @lru_cache

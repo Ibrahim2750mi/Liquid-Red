@@ -40,7 +40,7 @@ CANVAS_HEIGHT = 32
 LIGHT = np.array([0, 0, -1])
  
 camera = Camera(x=0, y=0, z=-5)
-renderer = Renderer(camera, light_direction_vector=LIGHT)
+renderer = Renderer(camera, LIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
  
 last_update = 0
  
@@ -109,7 +109,7 @@ from LiquidRed.events import pressed
 import numpy as np, time
  
 camera = Camera(z=-1)
-renderer = Renderer(camera, np.array([0, 0, -1]))
+renderer = Renderer(camera, np.array([0, 0, -1]), 64, 32)
  
 W, H = 4, 3  # corridor half-width, half-height
  

@@ -6,7 +6,6 @@ import numpy as np
 Point3d = namedtuple("Point3D", ["x", "y", "z"])
 
 
-@lru_cache
 def point_position_wrt_line(a, b, x, y):
     """
     Compute the signed area (orientation test) of point `(x,y)`

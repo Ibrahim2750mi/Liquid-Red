@@ -1,9 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "LiquidRed"
+version = "0.3.1"
+description = "3D TUI-based rasterization engine"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Mohammad Ibrahim", email = "kinetikzenassasin@gmail.com" },
+  { name = "Gaganpreet Singh", email = "gaganpreetsingh1786@gmail.com"}
+]
+requires-python = ">=3.11"
+
+dependencies = [
+  "numpy>=1.24",
+  "pynput>=1.7"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "ruff",
+]
+docs = [
+  "sphinx",
+  "sphinx-rtd-theme",
+]
+
+[project.urls]
+Homepage = "https://github.com/Ibrahim2750mi/Liquid-Red/tree/release"
+Documentation = "https://liquidred.readthedocs.io/en/latest/"
+
+# ----------------------------
+# setuptools config (src layout)
+# ----------------------------
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ----------------------------
+# Ruff
+# ----------------------------
 [tool.ruff]
 line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP"]  # pycodestyle, pyflakes, import sorting
+select = ["E", "F", "I", "B", "UP"]
 ignore = []
 
 [tool.ruff.format]

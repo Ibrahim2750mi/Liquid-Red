@@ -115,6 +115,7 @@ class Camera:
         - **A / D** → Strafe left / right
         - **, / .** → Yaw left / right
         - **J** → Jump
+        - **Arrow keys** → Look left / right / up / down (sent by :class:`LiquidRed.gui.Window`)
         """
         if self.jump:
             self.y = -(5 * (now - self.jump) - self.gravity / 2 * (now - self.jump) ** 2)
@@ -146,6 +147,18 @@ class Camera:
 
         if "." in pressed:
             self.yaw_angle -= 0.002
+
+        if "left" in pressed:
+            self.yaw_angle -= 0.03
+
+        if "right" in pressed:
+            self.yaw_angle += 0.03
+
+        if "up" in pressed:
+            self.pitch_angle = max(-1.4, self.pitch_angle - 0.03)
+
+        if "down" in pressed:
+            self.pitch_angle = min(1.4, self.pitch_angle + 0.03)
 
         if "j" in pressed and self.jump == 0:
             self.jump = now

@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 project = 'LiquidRed'
 copyright = '2026, Mohammad Ibrahim and Gaganpreet Singh'
 author = 'Mohammad Ibrahim and Gaganpreet Singh'
-release = '0.1.0'
+release = '0.3.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

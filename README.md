@@ -23,6 +23,12 @@ Built on perspective projection, barycentric rasterization, a z-buffer, and Lamb
 pip install pynput numpy LiquidRed
 ```
 
+For the optional SDL2 window backend, install the GUI extra:
+
+```bash
+pip install "LiquidRed[gui]"
+```
+
 ---
 
 ## Quick Start

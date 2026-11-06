@@ -9,3 +9,4 @@ API Reference
    geometry
    objects
    events
+   gui

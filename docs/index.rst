@@ -1,7 +1,7 @@
 Liquid-Red
 ==========
 
-A Python 3D rasterizer engine running entirely in the terminal. No GPU, no display server - just ASCII characters and math.
+A Python 3D rasterizer with an SDL2 graphical window and an optional ASCII terminal renderer.
 
 Built on perspective projection, barycentric rasterization, a z-buffer, and Lambert shading.
 

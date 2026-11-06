@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "LiquidRed"
-version = "0.3.2"
-description = "3D TUI-based rasterization engine"
+version = "1.3.0"
+description = "3D GUI-based rasterization engine"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [

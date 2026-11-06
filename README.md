@@ -1,136 +1,81 @@
 # Liquid-Red
 
-A Python 3D rasterizer with an SDL2 graphical window and an optional ASCII terminal renderer. Built on perspective projection, barycentric rasterization, a z-buffer, and Lambert shading.
+Liquid-Red is a Python 3D rasterizer with an SDL2 graphical window and an optional ASCII terminal renderer. It uses perspective projection, barycentric rasterization, a z-buffer, and Lambert shading.
 
----
- 
-## Features
- 
-- Perspective projection with configurable focal length and zoom
-- Z-buffer for correct depth ordering
-- Barycentric triangle rasterization
-- Lambert shading with ASCII intensity ramp
-- Camera with yaw/pitch rotation and jump physics
-- Plane drawing helpers (`draw_plane_xy`, `draw_plane_xz`, `draw_plane_yz`)
-- Solid cube with faces and wireframe edges
-- Keyboard input via `pynput`
----
- 
-## Installation
- 
-```bash
-pip install pynput numpy LiquidRed
-```
+## Install
 
-For the optional SDL2 window backend, install the GUI extra:
+Install the GUI backend (recommended):
 
 ```bash
-pip install "LiquidRed[gui]"
+python -m pip install "LiquidRed[gui]"
 ```
 
----
+For terminal rendering and keyboard input only:
 
-## Quick Start
- 
+```bash
+python -m pip install LiquidRed
+```
+
+## GUI quick start
+
 ```python
 import time
-from LiquidRed.camera import Camera
-from LiquidRed.grid import Renderer
-from LiquidRed.events import pressed
-from LiquidRed.geometry import Point3d
+
 import numpy as np
- 
-CANVAS_WIDTH = 64
-CANVAS_HEIGHT = 32
-LIGHT = np.array([0, 0, -1])
- 
-camera = Camera(x=0, y=0, z=-5)
-renderer = Renderer(camera, LIGHT, CANVAS_WIDTH, CANVAS_HEIGHT)
- 
-last_update = 0
- 
-while True:
-    now = time.time()
-    if now - last_update < 1 / 60:
-        continue
-    last_update = now
- 
-    camera.update(pressed, now)
-    renderer.clear_grid()
- 
-    # draw a floor plane
-    renderer.draw_plane_xz(-4, 4, 0, 20, 2)
- 
-    renderer.show_grid()
-```
- 
----
 
-### `Cube(size, cx, cy, cz)`
- 
-A solid cube centered at `(cx, cy, cz)`.
- 
-```python
-from LiquidRed.objects import Cube
- 
-cube = Cube(size=2, cx=0, cy=0, cz=5)
- 
-# Draw as solid faces
-for v0, v1, v2, v3 in cube.faces:
-    renderer.draw_plane(v0, v1, v2, v3)
- 
-# Draw as wireframe
-for i, j in cube.edges:
-    renderer.draw_line(cube.vertices[i], cube.vertices[j])
-```
-
-
-###  Coordinate System
- 
-```
-      -Y (up)
-       |
-       |
--X ----+---- +X
-       |
-       |
-      +Y (down)
- 
-+Z = into the screen (away from camera)
--Z = toward the camera
-```
- 
-Camera starts at negative Z looking toward positive Z. Place objects at positive Z values to put them in front of the camera.
- 
----
-    
- 
-## Example: Corridor Scene
- 
-```python
 from LiquidRed.camera import Camera
 from LiquidRed.grid import Renderer
-from LiquidRed.events import pressed
-import numpy as np, time
- 
+from LiquidRed.gui import Window
+
 camera = Camera(z=-1)
 renderer = Renderer(camera, np.array([0, 0, -1]), 64, 32)
- 
-W, H = 4, 3  # corridor half-width, half-height
- 
+window = Window(renderer)
+
+try:
+    while window.poll():
+        camera.update(window.pressed, time.time())
+        renderer.clear_grid()
+        renderer.draw_plane_xz(-4, 4, 0, 20, 2)
+        window.present()
+        window.tick()
+finally:
+    window.close()
+```
+
+The full GUI corridor example is in [`examples/gui_corridor.py`](examples/gui_corridor.py).
+
+## Terminal option
+
+The same renderer can print its character grid in the terminal. Importing `LiquidRed.events` starts the keyboard listener used by this example:
+
+```python
+import time
+
+import numpy as np
+
+from LiquidRed.camera import Camera
+from LiquidRed.events import pressed
+from LiquidRed.grid import Renderer
+
+camera = Camera(z=-1)
+renderer = Renderer(camera, np.array([0, 0, -1]), 64, 32)
+
 while True:
     now = time.time()
     camera.update(pressed, now)
     renderer.clear_grid()
- 
-    # floor, ceiling, left wall, right wall
-    renderer.draw_plane_xz(-W, W, 0, 30,  H)   # floor
-    renderer.draw_plane_xz(-W, W, 0, 30, -H)   # ceiling
-    renderer.draw_plane_yz(-H, H, 0, 30, -W)   # left
-    renderer.draw_plane_yz(-H, H, 0, 30,  W)   # right
- 
+    renderer.draw_plane_xz(-4, 4, 0, 20, 2)
     renderer.show_grid()
-    time.sleep(1/60)
+    time.sleep(1 / 60)
 ```
- 
----
+
+## Features
+
+- SDL2 GUI window with keyboard input, resizable display, and red or grayscale palettes
+- Optional ASCII terminal output and `pynput` keyboard input
+- Perspective projection, configurable focal length, and zoom
+- Z-buffer, barycentric triangle rasterization, and Lambert shading
+- Camera yaw, pitch, and jump controls
+- Plane helpers and cube geometry
+
+For API documentation and more examples, see the [docs](docs/index.rst).

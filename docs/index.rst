@@ -24,8 +24,9 @@ Features
 - Perspective projection with configurable focal length and zoom
 - Z-buffer for correct depth ordering
 - Barycentric triangle rasterization
-- Lambert shading with ASCII intensity ramp
+- SDL2 GUI window with red or grayscale palettes
+- Optional terminal output with ASCII intensity ramp
 - Camera with yaw/pitch rotation and jump physics
 - Plane helpers (``draw_plane_xy``, ``draw_plane_xz``, ``draw_plane_yz``)
 - Solid cube + wireframe edges
-- Keyboard input via ``pynput``
+- GUI keyboard input and optional terminal input via ``pynput``

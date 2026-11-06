@@ -29,6 +29,9 @@ extensions = [
     "sphinx.ext.napoleon",    # for NumPy/Google docstrings
 ]
 
+# The terminal keyboard listener requires an interactive display at import time.
+autodoc_mock_imports = ["pynput"]
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
